@@ -17,6 +17,8 @@ not a universal display reader or a certified Works with Google product.
 
 [Download the mount and print profile on MakerWorld](https://makerworld.com/en/models/3591988-appliance-display-sensor-pi-camera-mount)
 
+[Discuss the project on the Home Assistant Community forum](https://community.home-assistant.io/t/appliance-display-sensor-read-a-dryer-countdown-with-a-pi-camera-and-mqtt/1034072).
+
 ## Choose your starting point
 
 | Component | Start here |

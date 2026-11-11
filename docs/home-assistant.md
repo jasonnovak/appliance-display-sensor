@@ -3,6 +3,8 @@
 The Pi integrates using Home Assistant's existing MQTT integration. There is no
 custom HA integration or HACS package to install for local countdown entities.
 
+[Discuss the project on the Home Assistant Community forum](https://community.home-assistant.io/t/appliance-display-sensor-read-a-dryer-countdown-with-a-pi-camera-and-mqtt/1034072).
+
 1. Set up an MQTT broker and Home Assistant MQTT integration.
 2. Follow [Pi setup](../software/appliance-display-sensor/docs/raspberry-pi-setup.md)
    to configure the broker, a unique device identifier/base topic and credentials.
