@@ -1,0 +1,42 @@
+{
+  "project": "appliance-display-mount.3mf",
+  "project_sha256": "e8fa544c608e1ea034d0b804305730529929210ec20ca5a0d27e446c6646e595",
+  "method": "Compare each normal-part mesh to its named STL after restoring Bambu source offsets; require bijective vertices within 0.0001 mm and identical triangle connectivity/winding. Support blockers excluded.",
+  "parts": [
+    {
+      "file": "04-curved-cover-closed-end.stl",
+      "triangles": 6140,
+      "maximum_vertex_difference_mm": 1.0526509294589632e-06,
+      "geometry_and_oriented_triangles_match": true,
+      "stl_sha256": "53493bb802dd59280b9ffaa700b4d3e035c46f30e4da5177fa0d56ae9c70333e"
+    },
+    {
+      "file": "05-main-arm-overlap-nose.stl",
+      "triangles": 10998,
+      "maximum_vertex_difference_mm": 1.0945588949377108e-06,
+      "geometry_and_oriented_triangles_match": true,
+      "stl_sha256": "ac136df04da402cd15cce274e3253ff5dc7e828cca662c39c9def2c27e61030e"
+    },
+    {
+      "file": "02-pi-lid.stl",
+      "triangles": 8778,
+      "maximum_vertex_difference_mm": 6.781116733082168e-08,
+      "geometry_and_oriented_triangles_match": true,
+      "stl_sha256": "1da88d6896f9744baa7d7aa548f1490e93ca8227348d16d77ebe33b4e87b2121"
+    },
+    {
+      "file": "03-camera-cover-thicker-front.stl",
+      "triangles": 5276,
+      "maximum_vertex_difference_mm": 6.61258834963133e-08,
+      "geometry_and_oriented_triangles_match": true,
+      "stl_sha256": "86af7e7acd77a733ec83a0d7523a43cfdd2929378cf38a87b8b6663d7621132c"
+    },
+    {
+      "file": "01-base-recessed-head.stl",
+      "triangles": 9566,
+      "maximum_vertex_difference_mm": 3.914438961781607e-07,
+      "geometry_and_oriented_triangles_match": true,
+      "stl_sha256": "e719d99fe0a318f4326187abec0b63e8535b99412779a41aef65992d45f2a84c"
+    }
+  ]
+}

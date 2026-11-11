@@ -1,0 +1,26 @@
+{
+  "name": "Appliance Display Sensor Google Bridge",
+  "version": "0.2.1",
+  "slug": "appliance_display_bridge",
+  "description": "Read-only appliance countdown answers on the Google speaker you ask.",
+  "arch": ["amd64", "aarch64"],
+  "startup": "application",
+  "boot": "auto",
+  "init": false,
+  "ports": {"8767/tcp": null},
+  "ports_description": {"8767/tcp": "Authenticated Google fulfillment; leave host port disabled when using a tunnel app."},
+  "watchdog": "http://[HOST]:[PORT:8767]/healthz",
+  "map": [{"type": "app_config", "read_only": false}],
+  "options": {
+    "device_name": "Appliance Display",
+    "device_type": "dryer",
+    "room": "",
+    "public_base_url": ""
+  },
+  "schema": {
+    "device_name": "str",
+    "device_type": "list(dryer|washer|dishwasher|oven|microwave|vacuum)",
+    "room": "str?",
+    "public_base_url": "str?"
+  }
+}

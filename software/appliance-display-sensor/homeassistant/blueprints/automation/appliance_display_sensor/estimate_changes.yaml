@@ -1,0 +1,234 @@
+blueprint:
+  name: Appliance Display Sensor - optional finish estimate changes
+  description: >-
+    Run your chosen actions when a running appliance's estimated finish moves significantly
+    earlier or later. Compares finish timestamps, not the normal decrease in minutes remaining.
+    Select all four entities from the same device. Requires running/live/readable states for
+    at least 60 seconds and continuity since the previous estimate; uncertain comparisons
+    after a fault, new cycle or calibration are skipped. Rechecks after a short delay before
+    notifying. No actions or recipients are selected automatically. Does not detect completion,
+    stalled cycles or cumulative small changes. Changes during confirmation/actions/cooldown
+    are not queued. Pending waits and cooldown reset on HA restart/reload. Not safety monitoring.
+  domain: automation
+  homeassistant:
+    min_version: "2024.10.0"
+  input:
+    finish_entity:
+      name: Estimated finish
+      description: Choose the timestamp sensor, not Time remaining or Display text.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: mqtt
+              device_class: timestamp
+    status_entity:
+      name: Appliance Status
+      description: The sensor that reports running, complete or unknown (not Camera status).
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: mqtt
+    camera_entity:
+      name: Camera status
+      description: The diagnostic sensor that reports live, stale, error or waiting.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: mqtt
+    readability_entity:
+      name: Display readability
+      description: The diagnostic sensor that reports readable, blank, unreadable or calibrating.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: mqtt
+    device_label:
+      name: Name used in the message
+      default: Appliance
+      selector:
+        text:
+    change_minutes:
+      name: Minimum finish-time change
+      description: >-
+        Compare consecutive finish estimates, not cumulative drift. A higher threshold reduces
+        rounding noise and minor revisions. The default is 10 minutes in the chosen direction.
+      default: 10
+      selector:
+        number:
+          min: 2
+          max: 180
+          step: 1
+          unit_of_measurement: minutes
+          mode: box
+    change_direction:
+      name: Which changes to report
+      default: both
+      selector:
+        select:
+          options:
+            - label: Earlier or later
+              value: both
+            - label: Later only
+              value: later
+            - label: Earlier only
+              value: earlier
+    confirmation_seconds:
+      name: Recheck delay
+      description: >-
+        Wait before rechecking the latest estimate. A health fault, loss of readable countdown
+        or completion cancels the pending alert. Small reversions below the threshold are skipped.
+      default: 10
+      selector:
+        number:
+          min: 2
+          max: 60
+          step: 1
+          unit_of_measurement: seconds
+          mode: box
+    cooldown_minutes:
+      name: Quiet period after actions
+      description: >-
+        Ignore further changes for this long after your actions finish. No catch-up notice is
+        sent. Applies across cycles too; use zero for no extra quiet period. Keep actions short.
+      default: 15
+      selector:
+        number:
+          min: 0
+          max: 120
+          step: 1
+          unit_of_measurement: minutes
+          mode: box
+    estimate_actions:
+      name: Estimate-change actions
+      description: >-
+        Choose a phone notice, dashboard message or script. Use {{ estimate_message }} and
+        {{ estimate_title }} in its message/title fields. Also available: estimate_direction,
+        estimate_change_minutes, estimate_finish and previous_finish (ISO timestamps).
+        No actions, speakers or phones are preselected.
+      selector:
+        action:
+
+triggers:
+  - trigger: state
+    entity_id: !input finish_entity
+    # A null to filters attribute-only updates without limiting the new timestamp.
+    to: null
+
+variables:
+  finish_entity: !input finish_entity
+  status_entity: !input status_entity
+  camera_entity: !input camera_entity
+  readability_entity: !input readability_entity
+  device_label: !input device_label
+  change_minutes: !input change_minutes
+  change_direction: !input change_direction
+
+conditions: []
+
+actions:
+  - alias: Require a real timestamp transition
+    condition: template
+    value_template: >-
+      {{ trigger is defined and trigger is not none and trigger.platform is defined
+         and trigger.platform == 'state'
+         and trigger.from_state is defined and trigger.to_state is defined
+         and trigger.from_state is not none and trigger.to_state is not none
+         and trigger.from_state.state != trigger.to_state.state
+         and as_timestamp(trigger.from_state.state, none) is not none
+         and as_timestamp(trigger.to_state.state, none) is not none }}
+  - alias: Remember the previous estimate
+    variables:
+      previous_finish: "{{ trigger.from_state.state }}"
+      estimate_finish: "{{ trigger.to_state.state }}"
+      comparison_started: "{{ as_timestamp(trigger.from_state.last_changed, 0) }}"
+  - alias: Require a continuous healthy countdown
+    condition: template
+    value_template: >-
+      {% if is_state(status_entity, 'running') and is_state(camera_entity, 'live')
+            and is_state(readability_entity, 'readable') %}
+        {% set status_at = as_timestamp(states[status_entity].last_changed, 0) %}
+        {% set camera_at = as_timestamp(states[camera_entity].last_changed, 0) %}
+        {% set reading_at = as_timestamp(states[readability_entity].last_changed, 0) %}
+        {% set healthy_since = [status_at, camera_at, reading_at] | max %}
+        {{ healthy_since > 0 and healthy_since <= comparison_started | float
+           and as_timestamp(now()) - healthy_since >= 60 }}
+      {% else %}false{% endif %}
+  - alias: Require a significant change
+    condition: template
+    value_template: >-
+      {% set old = as_timestamp(previous_finish, none) %}
+      {% set new = as_timestamp(estimate_finish, none) %}
+      {% set clock = as_timestamp(now()) %}
+      {% if old is not none and new is not none
+            and -86400 < old - clock < 604800 and -86400 < new - clock < 604800 %}
+        {% set shift = (new - old) / 60 %}
+        {{ shift | abs >= change_minutes | float
+           and (change_direction == 'both' or (change_direction == 'later' and shift > 0)
+                or (change_direction == 'earlier' and shift < 0)) }}
+      {% else %}false{% endif %}
+  - alias: Wait briefly or cancel on a fault
+    wait_for_trigger:
+      - trigger: template
+        value_template: >-
+          {{ not is_state(status_entity, 'running') or not is_state(camera_entity, 'live')
+             or not is_state(readability_entity, 'readable') or not has_value(finish_entity) }}
+    timeout:
+      seconds: !input confirmation_seconds
+    continue_on_timeout: true
+  - alias: Stop if the wait was cancelled
+    condition: template
+    value_template: "{{ wait.trigger is none }}"
+  - alias: Recheck continuity before actions
+    condition: template
+    value_template: >-
+      {% if is_state(status_entity, 'running') and is_state(camera_entity, 'live')
+            and is_state(readability_entity, 'readable') %}
+        {% set status_at = as_timestamp(states[status_entity].last_changed, 0) %}
+        {% set camera_at = as_timestamp(states[camera_entity].last_changed, 0) %}
+        {% set reading_at = as_timestamp(states[readability_entity].last_changed, 0) %}
+        {% set healthy_since = [status_at, camera_at, reading_at] | max %}
+        {{ healthy_since > 0 and healthy_since <= comparison_started | float
+           and as_timestamp(now()) - healthy_since >= 60 }}
+      {% else %}false{% endif %}
+  - alias: Read the latest estimate
+    variables:
+      estimate_finish: "{{ states(finish_entity) }}"
+  - alias: Recheck the latest change
+    condition: template
+    value_template: >-
+      {% set old = as_timestamp(previous_finish, none) %}
+      {% set new = as_timestamp(estimate_finish, none) %}
+      {% set clock = as_timestamp(now()) %}
+      {% if old is not none and new is not none
+            and -86400 < old - clock < 604800 and -86400 < new - clock < 604800 %}
+        {% set shift = (new - old) / 60 %}
+        {{ shift | abs >= change_minutes | float
+           and (change_direction == 'both' or (change_direction == 'later' and shift > 0)
+                or (change_direction == 'earlier' and shift < 0)) }}
+      {% else %}false{% endif %}
+  - alias: Describe the change
+    variables:
+      estimate_direction: >-
+        {{ 'later' if as_timestamp(estimate_finish) > as_timestamp(previous_finish) else 'earlier' }}
+      estimate_change_minutes: >-
+        {{ ((as_timestamp(estimate_finish) - as_timestamp(previous_finish)) / 60) | abs | round(1) }}
+  - alias: Build the message
+    variables:
+      estimate_title: "{{ device_label }}: finish estimate changed"
+      estimate_message: >-
+        {{ device_label }} now estimates finishing about {{ estimate_change_minutes }} minutes
+        {{ estimate_direction }} (around {{ as_local(as_datetime(estimate_finish)).strftime('%a %H:%M') }}).
+        This is a changing estimate, not a completion alert.
+  - alias: Run only the chosen actions
+    sequence: !input estimate_actions
+    continue_on_error: true
+  - alias: Quiet period without queued reminders
+    delay:
+      minutes: !input cooldown_minutes
+
+mode: single
+max_exceeded: silent

@@ -1,0 +1,9 @@
+* text=auto
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.stl binary
+*.step binary
+*.FCStd binary
+*.png binary
+*.jpg binary
+*.3mf binary

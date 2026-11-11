@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Appliance Display Sensor · Setup</title>
+<style>
+:root{color-scheme:dark;--bg:#10161c;--card:#1a242d;--line:#384957;--text:#eef4f8;--muted:#b1c0cc;--blue:#62c3ff;--green:#82e6b2;--red:#ff9b9b;--yellow:#ffd580}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}header{border-bottom:1px solid var(--line);padding:20px max(20px,calc((100vw - 1460px)/2))}h1{font-size:23px;margin:0}h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:14px 0 10px}p{margin:8px 0}.muted,.hint,small{color:var(--muted)}.hint,small{font-size:13px}main{max-width:1500px;margin:auto;padding:18px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px;align-items:start}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}.health{grid-column:1/-1}.health-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}.metric{background:#111b23;padding:12px;border-radius:8px}.metric span{display:block;font-size:12px;color:var(--muted)}.metric strong{font-size:17px;font-weight:600}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.banner{padding:12px 16px;background:#122c40;border:1px solid #386382;border-radius:8px;margin-top:14px}.banner.warn{background:#342b1a;border-color:#67583b}.banner.bad{background:#381e24;border-color:#75434b}.toolbar,.actions,.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.toolbar{margin:12px 0}.row select{width:auto;flex:1;min-width:150px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wide{grid-column:1/-1}label{display:grid;gap:6px;color:var(--muted);font-size:14px}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;background:#101921;color:var(--text);border:1px solid #516777;border-radius:6px;padding:9px;min-width:0}input[type=range]{padding:4px 0;accent-color:var(--blue)}textarea{min-height:76px;font-family:ui-monospace,monospace;font-size:12px}button{background:#344b5c;color:white;border:1px solid transparent;border-radius:7px;padding:9px 12px;cursor:pointer}button:hover{filter:brightness(1.15)}button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}button:disabled,input:disabled,select:disabled{opacity:.5;cursor:not-allowed}.primary{background:#087caf}.save{background:#14734c}.actions{background:var(--card);padding:14px 0 0;border-top:1px solid var(--line);margin-top:18px}.actions button{flex:1;min-width:100px}.preview{background:#080c10;border-radius:8px;overflow:hidden;position:relative;min-height:150px}canvas{display:block;width:100%;height:auto;cursor:crosshair;touch-action:none}.status{padding:12px;background:#101921;border-radius:8px;margin-top:12px;overflow-wrap:anywhere}.digits{font:13px/1.7 ui-monospace,monospace;white-space:pre-wrap;margin-top:10px}.field{position:relative;min-width:0}.field>label{padding-right:24px}.help{position:absolute;right:0;top:0;border:1px solid #7893a6;border-radius:50%;width:20px;height:20px;padding:0;font-size:12px;line-height:18px;background:transparent;color:var(--muted)}.help-text{font-size:12px;color:var(--muted);border-left:2px solid var(--blue);padding-left:8px}.field.wide>label{padding-right:24px}details{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}summary{cursor:pointer;color:var(--blue);font-weight:600}details>.grid{margin-top:14px}.inspect-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.inspect-grid img{width:100%;background:#080c10;border-radius:6px;image-rendering:auto;min-height:50px}.inspect-grid figure{margin:12px 0 0}.inspect-grid figcaption{color:var(--muted);font-size:12px}.error{color:var(--red)}[hidden]{display:none!important}.chip{display:inline-block;font-size:12px;color:var(--muted);background:#263744;border-radius:20px;padding:3px 9px}.heading{display:flex;justify-content:space-between;gap:12px;align-items:center}
+@media(max-width:1050px){.health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:820px){main{grid-template-columns:1fr;padding:12px}.health-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:14px}h1{font-size:20px}}@media(max-width:420px){.grid{grid-template-columns:1fr}.inspect-grid{grid-template-columns:1fr}}
+.check-item{display:flex;gap:10px;align-items:flex-start;padding:12px;background:#111b23;border-radius:8px;color:var(--text);cursor:pointer}.check-item input{width:20px;height:20px;flex:0 0 20px;margin:3px 0 0;accent-color:var(--blue)}.check-item small{display:block;margin-top:4px;font-weight:400}
+.reading-history{max-height:300px;overflow:auto;list-style:none;margin:12px 0;padding:0}.reading-history li{padding:10px 12px;border-bottom:1px solid var(--line);background:#111b23;overflow-wrap:anywhere}.reading-history time{display:block;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="heading"><h1>Appliance Display Sensor</h1><span id="connection" class="chip">Connecting…</span></div><p class="muted">Align the display, tune the camera, then test and save. Your existing settings stay safe until you save.</p><div id="mode" class="banner" role="status" aria-live="polite">Loading saved settings…</div></header>
+<main>
+<section class="card health" aria-label="Sensor health"><div class="heading"><h2>Sensor health</h2><span class="hint">System readings refresh every 10 seconds</span></div><div class="health-grid">
+<div class="metric"><span>Camera / last frame</span><strong id="cameraHealth">Waiting…</strong></div>
+<div class="metric"><span>Home Assistant link · MQTT</span><strong id="mqttHealth">Checking…</strong></div>
+<div class="metric"><span>Last readable display</span><strong id="readingAge">Not yet read</strong></div>
+<div class="metric"><span>Pi temperature</span><strong id="temperature">Not available</strong></div>
+<div class="metric"><span>Wi-Fi signal</span><strong id="wifi">Not available</strong></div>
+<div class="metric"><span>Available memory</span><strong id="memory">Not available</strong></div>
+<div class="metric"><span>Mount alignment · anchor only</span><strong id="alignmentHealth">Not configured</strong></div>
+</div><p id="healthHint" class="hint">Health measurements do not change your calibration.</p>
+<details id="recentQuality"><summary>Recent reading quality · last 5 minutes</summary>
+<p id="qualityContext" class="hint">Waiting for fresh observations…</p>
+<div id="qualityCounts" class="grid" hidden>
+<div class="metric"><span>Readable countdown / End</span><strong id="qualityReadable">—</strong></div>
+<div class="metric"><span>Blank pattern</span><strong id="qualityBlank">—</strong></div>
+<div class="metric"><span>Unreadable pattern / format</span><strong id="qualityUnreadable">—</strong></div>
+<div class="metric"><span>Processing error</span><strong id="qualityError">—</strong></div>
+</div>
+<p class="hint">Fresh observations before smoothing—not the value held for Home Assistant. Percentages describe captured readings, not elapsed uptime or accuracy. A blank pattern is normal when the appliance is off; if it is visibly lit, check alignment and exposure. Compare readable values with the actual display.</p>
+<p class="hint">Counts reset on Test, Save, Discard, test expiry, or service restart. Moving the mount does not reset them: wait five minutes after repositioning. Nothing is written to disk.</p>
+</details>
+<details id="recentHistory"><summary>Countdown history · last 30 changes</summary>
+<p id="historyContext" class="hint">Waiting for accepted readings…</p>
+<ol id="historyEvents" class="reading-history" aria-label="Recent accepted readings, newest first" hidden></ol>
+<p class="hint">Newest first, times in your browser's time zone. Shows accepted countdowns, completion, and unknown states after the configured hold/confirmation period—not every raw frame. Completion held across a blank display stays complete.</p>
+<p class="hint">Minute changes are differences between displayed values, including normal countdown ticks. They do not prove an adaptive revision, a new cycle, or a fault. Capture gaps break the comparison; check the physical display if a value looks wrong.</p>
+<p class="hint">Memory only; clears on Test, Save, Discard, test expiry, or service restart. No images, notification triggers, or changes to Home Assistant.</p>
+</details></section>
+<section class="card health" aria-label="Installation checklist">
+<details id="setupChecklist" style="border:0;margin:0;padding:0"><summary>Installation checklist · <span id="checklistCount">0 / 7 confirmed</span></summary>
+<p class="hint">Tick a check only after you have tested it using the saved settings. These are your confirmations—not automatic certification. A readable snapshot alone does not prove a reliable full cycle.</p>
+<div id="checklistItems" class="grid">
+<label class="check-item"><input type="checkbox" id="check-mount" data-check="mount"><span><b>Mount and complete digits</b><small>Mount is secure, cable has slack, and every digit segment and both colon dots (if used) fit their boxes. Check the cropped sampling overlay.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-countdown" data-check="countdown"><span><b>Countdown matches the appliance</b><small>Compare several minute values and an hour/minute value if supported. Check leading blanks and the colon. Adaptive estimates may jump in either direction.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-light" data-check="light"><span><b>Bright-room reading</b><small>Saved settings read the actual display correctly with normal room lights/daylight, without frequent unknown readings.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-dark" data-check="dark"><span><b>Dim-room reading</b><small>Repeat with lights off or dim. Do not save a second profile unless one profile really cannot handle both conditions.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-completion" data-check="completion"><span><b>Completion and blank display</b><small>Watch a full cycle reach the configured terminal message (for example End). Check that completion survives the display going blank; blank/unreadable alone must not declare completion.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-homeassistant" data-check="homeassistant"><span><b>Home Assistant and notifications</b><small>Confirm the correct device/entities update in Home Assistant and test any completion alert or voice script you configured. MQTT Connected alone does not prove delivery.</small></span></label>
+<label class="check-item"><input type="checkbox" id="check-restart" data-check="restart"><span><b>Restart recovery</b><small>After a safe Pi reboot, confirm the service starts, camera is live, settings persist and Home Assistant updates return. This checkbox does not reboot anything.</small></span></label>
+</div>
+<p id="checklistStatus" class="hint" role="status" aria-live="polite">Loading saved settings…</p>
+<p class="hint">Progress belongs to this browser and sensor address, not to Home Assistant. Saved optical-setting changes reset it. Camera movement cannot be detected here: reset and re-check after moving the mount. No camera images or credentials are stored in the checklist.</p>
+<button id="resetChecklist" disabled>Reset checklist confirmations</button>
+</details></section>
+<section class="card">
+<h2>1 · Align the display</h2><p class="hint">The blue outline covers the whole display. Each numbered box must contain the complete physical digit—including segments that are currently off.</p>
+<div class="preview"><canvas id="canvas" aria-label="Camera preview with editable display boxes"></canvas></div>
+<div class="toolbar"><button id="refresh">Refresh image</button><button id="generate">Create starting boxes</button></div>
+<div class="row"><label for="editTarget">Move / resize</label><select id="editTarget"><option value="roi">Whole display</option></select></div>
+<p class="hint">Choose a box above, drag inside it to move, or drag its lower-right corner to resize. Whole-display moves carry all digit boxes with it. Changes need <b>Test changes</b> before they affect recognition.</p>
+<details id="alignmentSetup"><summary>Bumped-camera warning · optional static anchor</summary>
+<p class="hint">Choose a small, distinctive fixed label or texture on the appliance near the display—not digits, status lights, reflections or a plain edge. It must stay visible with lights on and off. The purple box is independent of the blue display box.</p>
+<div class="toolbar"><button id="chooseAnchor">Choose / move anchor</button></div>
+<label for="anchorBox">Anchor [left, top, width, height] · camera pixels (32–160 wide/high)</label><input id="anchorBox" data-local="true" placeholder="Choose an anchor first" spellcheck="false">
+<label class="check-item"><input id="confirmAnchor" data-local="true" type="checkbox"><span>I checked the physical mount and every displayed digit/colon. This box contains only a fixed appliance feature.</span></label>
+<div class="toolbar"><button id="storeAnchor" disabled>Confirm alignment &amp; store reference</button><button id="forgetAnchor" disabled>Forget stored reference</button></div>
+<p id="alignmentMessage" class="hint" role="status" aria-live="polite">Opt-in warning in this setup page only. It does not move boxes, block readings/MQTT, stop alerts or certify digit accuracy. No anchor is captured automatically.</p>
+<p id="alignmentDetail" class="hint"></p>
+<p class="hint">Only this small anchor's edge features and coordinates are stored privately on the Pi; no room image is retained or uploaded. It survives restarts but needs re-confirmation after saved optical changes. Dark/blurred/ambiguous anchors show Cannot verify, not Aligned. Forgetting removes the stored reference only.</p>
+</details>
+<div class="grid"><label data-help="digitCount">Number of digit positions<input id="digitCount" type="number" min="1" max="8"></label><label data-help="colonAfter">Colon position<select id="colonAfter"><option value="0">No colon</option></select></label></div>
+<div id="detection" class="status" aria-live="polite">Waiting for camera…</div>
+<details id="inspection"><summary>Inspect detection · display crop and segments</summary><p class="hint">These images use the tested/saved settings, not untested edits. White pixels are treated as illuminated segments.</p><div class="inspect-grid"><figure><img id="overlayImage" alt="Cropped display with recognition sampling regions"><figcaption>Segment sampling overlay</figcaption></figure><figure><img id="binaryImage" alt="Black-and-white display pixels used by the decoder"><figcaption>Black-and-white detection preview</figcaption></figure></div><div id="digitDetails" class="digits"></div><p class="hint">Segment letters: a = top, b = upper-right, c = lower-right, d = bottom, e = lower-left, f = upper-left, g = middle. Gray boxes = blank; green = recognized; red = unreadable; yellow = colon.</p><div class="toolbar"><button id="downloadDiagnostics" disabled>Download cropped diagnostics (.zip)</button></div><p id="diagnosticMessage" class="hint" role="status" aria-live="polite">Includes only the display box, recognition details, optical profile and health snapshot. No credentials, network addresses, device identity or raw logs. Check the crop before sharing; a misaligned box may include background or private display content. Nothing is uploaded automatically.</p></details>
+</section>
+<section class="card" id="settings">
+<h2>2 · Camera and readability</h2><p class="hint">Use the ? buttons for guidance. Start with brightness and focus; advanced settings are optional.</p>
+<details id="readabilityFeedback"><summary>Explain this camera view</summary>
+<p class="hint">Check one display crop for cut-off segments, light crossing box edges, poor sampling fit, or cutoff problems. Uses saved or tested settings. This check does not change settings or pause Home Assistant.</p>
+<button id="checkReadability" disabled>Check this view</button>
+<p id="feedbackMessage" class="hint" role="status" aria-live="polite">Turn on a known countdown, then check the view. A blank/off display is not a camera fault.</p>
+<div id="feedbackResults" hidden><ul id="feedbackIssues"></ul><p id="feedbackCaution" class="hint"></p></div>
+</details>
+<details id="pixelAdvice"><summary>Need a starting point? Suggest pixel settings</summary>
+<p class="hint">Turn on a known countdown and align the boxes first. This tries colour channels and fixed brightness cutoffs on one display crop. It cannot fix a bumped mount, blur, missing segments or camera exposure. Match scores are not accuracy probabilities; verify every digit and the colon yourself.</p>
+<div class="toolbar"><button id="suggestPixels" disabled>Find pixel settings</button><button id="copyPixelAdvice" hidden disabled>Copy suggestion to form</button></div>
+<p id="pixelAdviceMessage" class="hint" role="status" aria-live="polite">Advice does not change recognition or pause Home Assistant. Copying only fills the form; Test changes and Save settings are still separate steps.</p>
+</details>
+<div class="grid">
+<label data-help="exposureMode">Brightness control<select id="exposureMode"><option value="manual">Fixed exposure</option><option value="auto">Automatic exposure</option></select></label>
+<label data-help="exposure">Exposure time (µs)<input id="exposure" type="number" min="1" step="1"></label>
+<label data-help="gain">Brightness gain<input id="gain" type="number" min="0.1" step="0.1"></label>
+<label data-help="focusMode">Focus control<select id="focusMode"><option value="manual">Fixed focus</option><option value="auto">Autofocus once</option><option value="continuous">Continuous autofocus</option><option value="default">Camera default</option></select></label>
+<label data-help="lens">Manual focus position<input id="lens" type="number" min="0" step="0.1"></label>
+<label data-help="burstCount">Frames combined per reading<input id="burstCount" type="number" min="1" max="10" step="1"></label>
+<label data-help="channel">Display colour channel<select id="channel"><option value="blue">Blue</option><option value="green">Green</option><option value="red">Red</option><option value="gray">Grayscale</option><option value="max">Brightest colour</option></select></label>
+<label data-help="unknownGrace">Hold last reading for (seconds)<input id="unknownGrace" type="number" min="0" step="1"></label>
+<label class="wide" data-help="countdownFormat">Countdown format<select id="countdownFormat"><option value="auto">Automatic · use detected colon</option><option value="H:MM">H:MM · fixed digit positions, ignore colon</option></select></label>
+</div>
+<details id="advanced"><summary>Advanced recognition settings</summary><div class="grid">
+<label data-help="thresholdMethod">Pixel detection method<select id="thresholdMethod"><option value="fixed">Fixed brightness cutoff</option><option value="otsu">Automatic cutoff (Otsu)</option></select></label>
+<label data-help="threshold">Brightness cutoff · <output id="thresholdOut"></output><input id="threshold" type="range" min="0" max="255"></label>
+<label data-help="segmentFill">Required lit area per segment<input id="segmentFill" type="number" min="0.01" max="0.99" step="0.01"></label>
+<label data-help="colonFill">Required lit area in colon box<input id="colonFill" type="number" min="0.001" max="0.99" step="0.001"></label>
+<label data-help="digitConfidence">Minimum digit match confidence<input id="digitConfidence" type="number" min="0.01" max="0.99" step="0.01"></label>
+<label data-help="thickness">Sampling strip thickness<input id="thickness" type="number" min="0.01" max="0.99" step="0.01"></label>
+<label data-help="slant">Digit slant correction<input id="slant" type="number" min="-0.44" max="0.44" step="0.01"></label>
+</div>
+<details id="segmentEditor"><summary>Custom segment sampling · advanced</summary>
+<p class="hint">First align each complete digit box. These seven small rectangles sample the lit strokes, not the whole digit. One layout is shared by all digits. It cannot correct a moved camera or different shapes at individual positions.</p>
+<div class="grid"><label>Preview digit<select id="sampleDigit" data-local></select></label><label>Selected segment<select id="sampleSegment" data-local><option value="a">a · top</option><option value="b">b · upper right</option><option value="c">c · lower right</option><option value="d">d · bottom</option><option value="e">e · lower left</option><option value="f">f · upper left</option><option value="g">g · middle</option></select></label></div>
+<canvas id="sampleCanvas" width="320" height="360" aria-label="Digit sampling preview. Use the percentage fields below as a keyboard alternative." style="max-width:320px;margin:12px auto;background:#080c10"></canvas>
+<p id="sampleStatus" class="hint" role="status">Automatic sampling.</p>
+<div class="toolbar"><button id="customSamples">Customize this layout</button><button id="autoSamples">Use automatic sampling</button></div>
+<div class="grid"><label>Left · % of digit width<input id="sampleX" data-local type="number" min="0" max="99.9" step="any"></label><label>Top · % of digit height<input id="sampleY" data-local type="number" min="0" max="99.9" step="any"></label><label>Width · % of digit width<input id="sampleW" data-local type="number" min="0.1" max="100" step="any"></label><label>Height · % of digit height<input id="sampleH" data-local type="number" min="0.1" max="100" step="any"></label></div>
+<p id="sampleError" class="error" role="alert"></p>
+<p class="hint">Yellow = selected sample; blue = other samples. Drag the selected rectangle to move it or its lower-right handle to resize. Keep samples inside each stroke and away from adjacent segments. Thickness/slant controls are ignored in custom mode. Edits are only applied with Test changes, then Save settings. Export saved profile includes the layout.</p>
+</details>
+<details><summary>Exact box coordinates</summary><p class="hint">Use dragging for normal setup. Coordinates below are for precise adjustments.</p><div class="grid"><label class="wide" data-help="roi">Whole display [x, y, width, height]<input id="roi"></label><label class="wide" data-help="boxes">Digit boxes · relative to display<textarea id="boxes" spellcheck="false"></textarea></label><label class="wide" data-help="colonBox">Colon box · relative to display<input id="colonBox"></label></div></details></details>
+<h3>3 · Test, then save</h3><p class="hint">Testing temporarily pauses Home Assistant updates. Discard restores the saved settings; uncommitted tests expire after 10 minutes.</p>
+<div class="actions"><button class="primary" id="preview">Test changes</button><button class="save" id="save">Save settings</button><button id="cancel">Discard changes</button></div><p id="message" class="hint" role="status" aria-live="polite">Loading…</p>
+<details id="recovery"><summary>Backup and recovery · optical profiles</summary>
+<p class="hint">Profiles contain saved camera/readability settings and box coordinates—not passwords, broker addresses, device names or MQTT topics. They require the same image resolution and rotation; alignment must still be checked after moving a camera.</p>
+<div class="toolbar"><a id="exportProfile" href="/api/profile" download="display-optical-profile.json">Export saved profile</a><button id="restoreProfile" disabled>Test previous calibration</button></div>
+<label for="profileFile">Choose an exported optical profile (.json)</label><input id="profileFile" type="file" accept=".json,application/json"><div class="toolbar"><button id="importProfile" disabled>Import into test mode</button></div>
+<div id="recoveryConfirm" class="status warn" hidden role="group" aria-label="Confirm calibration test"><p id="recoveryConfirmText"></p><div class="toolbar"><button id="confirmRecovery" class="primary">Load into test mode</button><button id="cancelRecovery">Keep current settings</button></div></div>
+<p id="recoveryHint" class="hint">Loading backup information…</p><p class="hint">Import and recovery do not save automatically. Check the result, then Save settings to keep it or Discard changes to return to the current calibration. Export always downloads the saved profile, even while testing edits.</p>
+</details>
+</section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), canvas=$('canvas'), ctx=canvas.getContext('2d');
+let state=null, applied=null, revision=null, initialized=false, dirty=false, busy=false, online=false, drag=null, frameLoading=false,diagnosticDownloading=false;
+const img=new Image();
+// Segment sampling editor: normalized rectangles, no network or automatic apply.
+let sampleBoxes=null,sampleDrag=null;
+const sampleFields=['sampleX','sampleY','sampleW','sampleH'];
+function sampleRound(v){const n=Math.floor(v),f=v-n;return f===0.5?(n%2===0?n:n+1):Math.round(v)}
+function automaticSamples(width,height,ratio,slant){
+ const t=Math.max(2,sampleRound(width*ratio)),delta=-sampleRound(width*slant),base=Math.max(t+2,width-Math.abs(delta)),origin=Math.max(0,-delta),hw=Math.max(2,sampleRound(base*.52)),hx=sampleRound((base-hw)/2),vh=Math.max(2,sampleRound(height*.25));
+ const shift=y=>sampleRound(origin+delta*Math.max(0,Math.min(1,(y-.08)/.84)));
+ const horizontal=y=>[Math.max(0,Math.min(width-hw,hx+shift(y))),Math.max(0,sampleRound(height*y-t/2)),hw,t];
+ const vertical=(x,y)=>[Math.max(0,Math.min(width-t,x+shift(y+vh/height/2))),sampleRound(height*y),t,vh];
+ const left=sampleRound(base*.13-t/2),right=sampleRound(base*.87-t/2);
+ const pixels={a:horizontal(.08),b:vertical(right,.16),c:vertical(right,.59),d:horizontal(.92),e:vertical(left,.59),f:vertical(left,.16),g:horizontal(.50)};
+ return Object.fromEntries(Object.entries(pixels).map(([k,r])=>[k,r.map((v,i)=>v/(i%2?height:width))]));
+}
+function validSamples(layout,digits){
+ if(!layout||Object.keys(layout).sort().join('')!=='abcdefg')return false;
+ return Object.values(layout).every(r=>Array.isArray(r)&&r.length===4&&r.every(Number.isFinite)&&r[0]>=0&&r[1]>=0&&r[2]>0&&r[3]>0&&r[0]+r[2]<=1&&r[1]+r[3]<=1&&digits.every(d=>sampleRound((r[0]+r[2])*d[2])>sampleRound(r[0]*d[2])&&sampleRound((r[1]+r[3])*d[3])>sampleRound(r[1]*d[3])));
+}
+function sampleLayout(){const d=json('boxes')[+$('sampleDigit').value||0];return sampleBoxes||automaticSamples(d[2],d[3],+$('thickness').value,+$('slant').value)}
+function samplesPayload(){
+ if($('sampleError').textContent)throw Error('Correct the segment sampling fields first.');
+ if(sampleBoxes&&!validSamples(sampleBoxes,json('boxes')))throw Error('Segment samples must fit every digit and cover at least one pixel.');
+ return sampleBoxes;
+}
+function sampleInputs(){
+ try{const r=sampleLayout()[$('sampleSegment').value];sampleFields.forEach((id,i)=>{$(id).value=String(+(r[i]*100).toFixed(6))});$('sampleError').textContent=''}catch(e){/* Coordinates may be temporarily incomplete. */}
+}
+function renderSamples(){
+ const enabled=online&&initialized&&!busy;
+ $('customSamples').disabled=!enabled||sampleBoxes!==null;$('autoSamples').disabled=!enabled||sampleBoxes===null;
+ for(const id of sampleFields)$(id).disabled=!enabled||sampleBoxes===null;
+ $('thickness').disabled=$('slant').disabled=sampleBoxes!==null;
+ $('sampleStatus').textContent=(sampleBoxes?'Custom sampling · shared across all digits.':'Automatic sampling · generated from thickness and slant.')+(dirty?' Preview includes untested edits.':' Image refreshes with the camera; labels are geometry, not recognition results.');
+ if(!$('segmentEditor').open)return;
+ try{
+  const digits=json('boxes'),select=$('sampleDigit'),old=select.value;
+  if(select.options.length!==digits.length){select.replaceChildren(...digits.map((_,i)=>new Option('Digit '+(i+1),String(i))));select.value=+old<digits.length?old:'0'}
+  if(!select.value)select.value='0';
+  const d=digits[+select.value],roi=json('roi'),sc=$('sampleCanvas'),cx=sc.getContext('2d');
+  sc.height=Math.max(160,Math.min(480,Math.round(320*d[3]/d[2])));cx.clearRect(0,0,sc.width,sc.height);
+  if(img.naturalWidth){const fs=state.frame_size||[img.naturalWidth,img.naturalHeight],sx=img.naturalWidth/fs[0],sy=img.naturalHeight/fs[1];cx.drawImage(img,(roi[0]+d[0])*sx,(roi[1]+d[1])*sy,d[2]*sx,d[3]*sy,0,0,sc.width,sc.height)}
+  cx.lineWidth=2;cx.font='16px system-ui';
+  for(const [key,r]of Object.entries(sampleLayout())){const [x,y,w,h]=r.map((v,i)=>v*(i%2?sc.height:sc.width));cx.strokeStyle=cx.fillStyle=key===$('sampleSegment').value?'#ffd580':'#62c3ff';cx.strokeRect(x,y,w,h);cx.fillText(key,Math.max(2,x+2),Math.max(16,y-3));if(key===$('sampleSegment').value&&sampleBoxes)cx.fillRect(x+w-5,y+h-5,10,10)}
+ }catch(e){$('sampleStatus').textContent='Enter valid digit coordinates to preview sampling.'}
+}
+$('segmentEditor').ontoggle=()=>{renderSamples();sampleInputs()};
+for(const id of ['sampleDigit','sampleSegment'])$(id).onchange=()=>{sampleInputs();renderSamples()};
+$('customSamples').onclick=()=>{try{const layout=sampleLayout();if(!validSamples(layout,json('boxes')))throw Error('Automatic samples do not fit every digit. Adjust digit boxes or thickness/slant first.');sampleBoxes=structuredClone(layout);sampleInputs();changed()}catch(e){$('sampleError').textContent=e.message}};
+$('autoSamples').onclick=()=>{sampleBoxes=null;sampleInputs();changed()};
+for(const id of sampleFields)$(id).oninput=()=>{
+ if(!sampleBoxes)return;const next=structuredClone(sampleBoxes);next[$('sampleSegment').value]=sampleFields.map(id=>$(id).value.trim()===''?NaN:+$(id).value/100);
+ if(!validSamples(next,json('boxes'))){$('sampleError').textContent='Keep all samples inside the digit, with positive size and at least one pixel in every digit box.';changed();return}
+ sampleBoxes=next;$('sampleError').textContent='';changed();
+};
+function samplePoint(e){const r=$('sampleCanvas').getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]}
+$('sampleCanvas').onpointerdown=e=>{
+ if(!sampleBoxes||busy||!online||$('sampleError').textContent)return;
+ const p=samplePoint(e),r=sampleBoxes[$('sampleSegment').value],bounds=$('sampleCanvas').getBoundingClientRect(),resize=Math.abs(p[0]-r[0]-r[2])*bounds.width<14&&Math.abs(p[1]-r[1]-r[3])*bounds.height<14;
+ if(resize||(p[0]>=r[0]&&p[0]<=r[0]+r[2]&&p[1]>=r[1]&&p[1]<=r[1]+r[3])){sampleDrag={p,r:[...r],resize,key:$('sampleSegment').value};$('sampleCanvas').setPointerCapture(e.pointerId)}
+};
+$('sampleCanvas').onpointermove=e=>{
+ if(!sampleDrag||!sampleBoxes||busy||!online)return;
+ const p=samplePoint(e),{r,resize,key}=sampleDrag,dx=p[0]-sampleDrag.p[0],dy=p[1]-sampleDrag.p[1],next=structuredClone(sampleBoxes);
+ next[key]=resize?[r[0],r[1],Math.max(.001,Math.min(1-r[0],r[2]+dx)),Math.max(.001,Math.min(1-r[1],r[3]+dy))]:[Math.max(0,Math.min(1-r[2],r[0]+dx)),Math.max(0,Math.min(1-r[3],r[1]+dy)),r[2],r[3]];
+ if(validSamples(next,json('boxes'))){sampleBoxes=next;sampleInputs();changed()}
+};
+$('sampleCanvas').onpointerup=$('sampleCanvas').onpointercancel=()=>sampleDrag=null;
+// End segment sampling editor.
+// Checklist confirmations are browser-local, never sent to the sensor or HA.
+const checklistKey='ads.setup-checklist.v1';
+const checklistIds=['mount','countdown','light','dark','completion','homeassistant','restart'];
+let checklistSignature=null,checklistChecks={},checklistReview=false,checklistStorageWarning='';
+function readChecklist(signature){
+ try{
+  const raw=localStorage.getItem(checklistKey);
+  if(!raw)return{};
+  const record=JSON.parse(raw);
+  if(record?.version!==1||record.signature!==signature||!record.checks||typeof record.checks!=='object'){
+   checklistReview=true;return{};
+  }
+  return Object.fromEntries(checklistIds.map(id=>[id,record.checks[id]===true]));
+ }catch(e){checklistStorageWarning='Browser storage is unavailable or unreadable; progress lasts only for this page visit.';return{}}
+}
+function writeChecklist(){
+ if(checklistSignature===null)return;
+ try{localStorage.setItem(checklistKey,JSON.stringify({version:1,signature:checklistSignature,checks:checklistChecks}))}
+ catch(e){checklistStorageWarning='Browser storage is unavailable; progress lasts only for this page visit.'}
+}
+function checklistEnabled(){return online&&initialized&&!busy&&!dirty&&!state?.active}
+function renderChecklist(){
+ const enabled=checklistEnabled(),count=checklistIds.filter(id=>checklistChecks[id]).length;
+ for(const id of checklistIds){$('check-'+id).checked=!!checklistChecks[id];$('check-'+id).disabled=!enabled}
+ $('resetChecklist').disabled=!enabled;
+ $('checklistCount').textContent=count+' / '+checklistIds.length+' confirmed';
+ let message=!online?'Disconnected: confirmations paused until the setup page reconnects.':!initialized?'Loading saved settings…':state?.active||dirty||busy?'Finish testing and save or discard changes before confirming the saved installation.':count===checklistIds.length?'All checks confirmed by you. Continue observing real cycles; this is not an accuracy guarantee.':checklistReview?'Saved settings changed or confirmations were reset. Re-check the installation before marking it ready.':'Confirm each check after testing. An off/blank appliance may need another cycle before you can finish.';
+ $('checklistStatus').textContent=message+(checklistStorageWarning?' '+checklistStorageWarning:'');
+}
+function syncChecklist(){
+ if(online&&initialized&&!state?.active){
+  const signature=JSON.stringify(state.config);
+  if(signature!==checklistSignature){
+   const changed=checklistSignature!==null;
+   checklistSignature=signature;
+   checklistChecks=changed?{}:readChecklist(signature);
+   if(changed)checklistReview=true;
+   writeChecklist();
+  }
+ }
+ renderChecklist();
+}
+for(const id of checklistIds)$('check-'+id).onchange=()=>{
+ if(checklistEnabled()){checklistChecks[id]=$('check-'+id).checked;writeChecklist()}
+ renderChecklist();
+};
+$('resetChecklist').onclick=()=>{if(!checklistEnabled())return;checklistChecks={};checklistReview=true;writeChecklist();renderChecklist()};
+window.addEventListener('storage',event=>{
+ if(event.key!==checklistKey&&event.key!==null)return;
+ if(checklistSignature!==null){checklistChecks=readChecklist(checklistSignature);renderChecklist()}
+});
+const help={
+ countdownFormat:'Automatic preserves colon-based interpretation and the configured minutes/seconds unit. H:MM requires three boxes: hour, minute tens, minute units. Blank leading positions are allowed: 21 means 21 minutes; 112 means 1:12. The colon is diagnostic only, and End ignores colon glare. Minute values must be 00–59. Optical-profile import/restore does not change this setting.',
+ digitCount:'Count every physical digit position, including a leading position that is sometimes blank. Creating starting boxes replaces your edited boxes; it does not apply or save them.',
+ colonAfter:'Choose the digit immediately before the colon. For 1:10, select after digit 1. No colon disables colon detection when tested/saved; it does not change the appliance display.',
+ exposureMode:'Fixed exposure is often more repeatable for glowing LED digits. Automatic exposure responds to room lighting but may wash out the display. One saved profile can work in light and darkness; test both.',
+ exposure:'How long the camera collects light for each frame, in microseconds. Lower values reduce glow; overly short exposures can miss flickering LED segments. 8333 µs is about 8.3 milliseconds, not a universal preset.',
+ gain:'Amplifies the camera signal. 1 means no extra amplification. Higher gain brightens the image but can add noise and make unlit segments appear lit. Used only with fixed exposure.',
+ focusMode:'Fixed focus keeps the display stable after calibration. Autofocus can help find focus initially but may hunt in dim light. Manual position is only used with fixed focus.',
+ lens:'Camera-specific lens setting, not millimetres. Larger values generally focus closer on the reference camera. Adjust while watching the digit edges, then test. Not every camera supports lens controls.',
+ burstCount:'Combines the brightest pixels from several frames. Helps reconstruct LED displays that light digits in rapid succession. More frames use more time; try 3–4 only if individual captures miss segments.',
+ channel:'Use the colour that best separates lit segments from the background—for example Blue for blue LED digits. Brightest colour takes the strongest colour at each pixel. Check the black-and-white preview.',
+ unknownGrace:'Keep the last accepted reading through short unreadable periods. After this many seconds of unreadability, the status becomes unknown. This does not count down on its own or declare completion.',
+ thresholdMethod:'Fixed cutoff is repeatable; automatic (Otsu) selects a cutoff from each image. Neither changes camera brightness. Inspect the white segment pixels before lowering match confidence.',
+ threshold:'Pixels brighter than this value become white. Lower values include dimmer pixels and more noise; higher values can lose segments. Used only with the fixed cutoff method.',
+ segmentFill:'Fraction of white pixels needed inside each sampling strip, from 0 to 1. 0.30 means 30%. Raising it rejects noise; too high can miss real segments.',
+ colonFill:'Fraction of white pixels needed in the whole colon box to treat the colon as lit. Both dots should fit. Too low may detect noise; too high may miss a real colon. Check the binary preview first.',
+ digitConfidence:'Minimum match score for accepting a digit, from 0 to 1. 0.72 means 72%. This is not a guarantee of accuracy. Correct alignment and sampling strips before lowering it.',
+ thickness:'Thickness of the segment sampling strips as a fraction of digit width. These strips should sit inside the illuminated segments; see the cropped overlay.',
+ slant:'Models digits whose bottom segments shift sideways relative to the top. Positive values shift the bottom sampling regions left. Use the overlay to check alignment.',
+ roi:'Absolute camera pixels: [left, top, width, height]. Moving this box carries the digit and colon boxes. Resizing it does not automatically rescale those boxes.',
+ boxes:'JSON list of [left, top, width, height] for each digit. Coordinates are relative to the whole-display box, not the camera image. Boxes must include every possible segment.',
+ colonBox:'[left, top, width, height] relative to the whole-display box, or null for none. Both dots should fit without including a neighbouring digit.'
+};
+for(const label of document.querySelectorAll('[data-help]')){
+ const id=label.dataset.help, field=document.createElement('div'), button=document.createElement('button'), text=document.createElement('p');
+ field.className='field'+(label.classList.contains('wide')?' wide':'');label.before(field);field.append(label);
+ button.className='help';button.type='button';button.textContent='?';button.setAttribute('aria-label','Help: '+label.firstChild.textContent.trim());button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','help-'+id);
+ text.id='help-'+id;text.className='help-text';text.hidden=true;text.textContent=help[id];button.onclick=()=>{text.hidden=!text.hidden;button.setAttribute('aria-expanded',String(!text.hidden))};field.append(button,text);
+}
+// Static-anchor controls never modify the calibration form or mark checks passed.
+let alignmentBox=null,alignmentEditing=false,alignmentConfirmationRevision=null;
+function alignmentCanEdit(){return online&&initialized&&!busy&&!dirty&&!state?.active}
+function updateAlignmentControls(){
+ const a=state?.health?.alignment||{},enabled=alignmentCanEdit();
+ if($('confirmAnchor').checked&&alignmentConfirmationRevision!==revision)$('confirmAnchor').checked=false;
+ if(!alignmentEditing&&a.anchor_box){alignmentBox=a.anchor_box.slice();$('anchorBox').value=JSON.stringify(alignmentBox)}
+ $('chooseAnchor').disabled=!enabled||!state?.frame_size;
+ $('anchorBox').disabled=!enabled;$('confirmAnchor').disabled=!enabled;
+ $('storeAnchor').disabled=!enabled||!alignmentBox||!$('confirmAnchor').checked||alignmentConfirmationRevision!==revision;
+ $('forgetAnchor').disabled=!enabled||!(a.configured||a.status==='reference_unavailable');
+ const labels={not_configured:'Not configured',checking:'Checking…',aligned:'Anchor aligned',moved:'Possible movement',uncheckable:'Cannot verify',stale:'Check is stale',paused:'Paused for settings',needs_reference:'Reference out of date',reference_unavailable:'Reference unavailable'};
+ metric('alignmentHealth',!online?'Unknown':labels[a.status]||'Not configured',!online?'warn':a.status==='aligned'?'good':a.configured||a.status==='reference_unavailable'?'warn':'');
+ const shift=a.shift_pixels?' · offset '+a.shift_pixels.join(', ')+' camera pixels':'';
+ $('alignmentDetail').textContent=(labels[a.status]||'Not configured')+shift+(a.check_age_seconds==null?'':' · checked '+age(a.check_age_seconds))+(a.movement_latched?' · Previously confirmed movement is still unresolved.':'')+(a.status==='moved'?' Inspect the mount and actual digits before trusting countdowns.':a.status==='uncheckable'?' Anchor may be dark, blurred, missing or ambiguous. This does not prove the camera moved.':'');
+}
+$('chooseAnchor').onclick=()=>{
+ if(!alignmentCanEdit()||!state?.frame_size)return;
+ if(!alignmentBox){const r=box(json('roi')),fs=state.frame_size;alignmentBox=[Math.max(0,Math.min(fs[0]-120,Math.round(r.x+r.w/3))),Math.max(0,Math.round(r.y-100)),120,64]}
+ alignmentEditing=true;$('confirmAnchor').checked=false;$('anchorBox').value=JSON.stringify(alignmentBox);targets();$('editTarget').value='anchor';draw();updateAlignmentControls();
+ $('alignmentMessage').textContent='Drag the purple anchor box onto distinctive fixed text/texture. Keep away from digits and changing indicators. Nothing has been captured yet.';
+};
+$('anchorBox').oninput=()=>{
+ alignmentEditing=true;$('confirmAnchor').checked=false;
+ try{const a=JSON.parse($('anchorBox').value);if(!Array.isArray(a)||a.length!==4||a.some(v=>!Number.isInteger(v)))throw Error();alignmentBox=a}catch(e){alignmentBox=null}
+ targets();if(alignmentBox)$('editTarget').value='anchor';draw();updateAlignmentControls();
+};
+$('confirmAnchor').onchange=()=>{alignmentConfirmationRevision=$('confirmAnchor').checked?revision:null;updateAlignmentControls()};
+async function alignmentAction(forget){
+ if(!alignmentCanEdit()||(!forget&&(!alignmentBox||!$('confirmAnchor').checked||alignmentConfirmationRevision!==revision)))return;
+ busy=true;mode();$('alignmentMessage').textContent=forget?'Forgetting the stored anchor…':'Validating and storing only the selected anchor…';
+ try{
+  const payload=forget?{confirmed:true}:{confirmed:true,revision,anchor_box:alignmentBox};
+  const r=await fetch('/api/alignment/'+(forget?'forget':'reference'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(10000)}),s=await r.json();
+  if(!r.ok)throw Error(s.error||'Anchor request failed');
+  state=s;alignmentEditing=false;alignmentBox=forget?null:s.health.alignment.anchor_box;$('anchorBox').value=alignmentBox?JSON.stringify(alignmentBox):'';$('confirmAnchor').checked=false;targets();
+  $('alignmentMessage').textContent=forget?'Stored anchor reference removed. Calibration and MQTT are unchanged.':'Anchor stored. Allow two checks (about 5–10 seconds) to verify. Movement requires three consistent shifted checks; warnings do not block readings or MQTT.';
+ }catch(e){$('alignmentMessage').textContent='Could not confirm anchor action: '+e.message+'. Calibration was not changed. If a request timed out, reconnect to check whether it completed.'}
+ finally{busy=false;mode();draw()}
+}
+$('storeAnchor').onclick=()=>alignmentAction(false);$('forgetAnchor').onclick=()=>alignmentAction(true);
+// End static-anchor controls.
+// Reading history is local diagnostic text, not an event trigger or an accuracy claim.
+function renderReadingHistory(){
+  const h=state?.reading_history, list=$('historyEvents'), context=$('historyContext');
+  list.hidden=true;list.replaceChildren();
+  if(!online){context.textContent='Disconnected · history is hidden until reconnection.';return}
+  if(!h||h.revision!==state.revision){context.textContent='Waiting for history / current settings.';return}
+  const label=h.mode==='test'?'Tested settings (not saved)':'Saved settings';
+  if(!h.collecting){context.textContent=label+' · waiting for fresh frames after settings changed.';return}
+  if(!h.events?.length){context.textContent=label+' · waiting for an accepted reading.';return}
+  list.hidden=false;
+  context.textContent=label+' · '+h.events.length+' recent '+(h.events.length===1?'entry':'entries')+
+    (h.dropped?' · '+h.dropped+' older entries discarded':'')+'.'+
+    (state.health?.camera_status!=='live'?' Camera is not live; this is historical, not current status.':'')+
+    (dirty?' Untested form edits are not included.':'');
+  for(const event of h.events){
+    let text;
+    if(event.kind==='countdown'){
+      text=event.previous_minutes==null?'Countdown: '+event.minutes+' min':
+        event.previous_minutes+' → '+event.minutes+' min ('+(event.change_minutes>0?'+':'')+event.change_minutes+' min)';
+      if(event.text)text+=' · display '+event.text;
+    }else if(event.kind==='complete'){text='Complete · terminal display '+(event.text||'recognized')}
+    else if(event.kind==='unknown'){text=event.reason==='blank'?'Unknown · blank pattern (normal when off)':'Unknown · unreadable pattern / format'}
+    else if(event.kind==='gap'){text='Frames resumed after '+event.seconds+' seconds · intervening state unknown'}
+    else if(event.kind==='error'){text='Processing error · no accepted reading'}
+    else continue;
+    const item=document.createElement('li'),time=document.createElement('time'),description=document.createElement('span');
+    const date=new Date(event.observed_at);
+    time.textContent=Number.isNaN(date.getTime())?'Timestamp unavailable':date.toLocaleString();
+    if(!Number.isNaN(date.getTime()))time.dateTime=date.toISOString();
+    description.textContent=text;item.append(time,description);list.append(item);
+  }
+}
+// End reading history.
+// Recent quality describes observations; it never edits calibration or claims accuracy.
+function renderReadingQuality(){
+  const q=state?.reading_quality, box=$('qualityCounts'), hint=$('qualityContext');
+  box.hidden=true;
+  if(!online){hint.textContent='Disconnected · recent counts are unavailable until reconnection.';return}
+  if(!q||q.revision!==state.revision){hint.textContent='Waiting for recent-reading support / current settings.';return}
+  const label=q.mode==='test'?'Tested settings (not saved)':'Saved settings';
+  if(!q.collecting){hint.textContent=label+' · waiting for fresh frames after settings changed.';return}
+  if(!q.total){hint.textContent=label+' · no observations within the last five minutes.';return}
+  box.hidden=false;
+  for(const [kind,id] of [['readable','qualityReadable'],['blank','qualityBlank'],['unreadable','qualityUnreadable'],['error','qualityError']]){
+    $(id).textContent=q.percentages[kind]+'% · '+q.counts[kind];
+  }
+  const stale=state.health?.camera_status!=='live';
+  hint.textContent=label+' · '+q.total+' observations spanning '+Math.round(q.span_seconds)+' seconds. '+
+    'Latest sample '+q.last_sample_age_seconds+' seconds ago.'+
+    (stale?' Camera is not live: these are historical counts, not current health.':'')+
+    (dirty?' Untested form edits are not included.':'');
+}
+// End recent quality.
+// Readability feedback explains one snapshot and never edits the form.
+let feedbackSnapshot=null;
+function feedbackEnabled(){return online&&initialized&&!busy&&!dirty&&!!state?.frame_size}
+function updateFeedbackControls(){
+ $('checkReadability').disabled=!feedbackEnabled();
+ if(feedbackSnapshot&&(!online||dirty||revision!==feedbackSnapshot.revision||
+    JSON.stringify(state.config)!==feedbackSnapshot.signature||Date.now()-feedbackSnapshot.at>60000)){
+  feedbackSnapshot=null;$('feedbackResults').hidden=true;
+  $('feedbackMessage').textContent='Snapshot expired, connection lost, or settings changed. Check the view again after testing your edits.';
+ }
+}
+$('checkReadability').onclick=async()=>{
+ if(!feedbackEnabled())return;
+ const requestedRevision=revision,signature=JSON.stringify(state.config);
+ feedbackSnapshot=null;$('feedbackResults').hidden=true;busy=true;mode();
+ $('feedbackMessage').textContent='Checking one display crop…';
+ try{
+  const r=await fetch('/api/readability-feedback',{cache:'no-store',signal:AbortSignal.timeout(15000)}),report=await r.json();
+  if(!r.ok)throw Error(report.error||'Snapshot check unavailable');
+  if(!online||dirty||revision!==requestedRevision||report.revision!==revision||signature!==JSON.stringify(state.config))throw Error('Settings changed; check the view again');
+  feedbackSnapshot={revision,signature,at:Date.now()};
+  $('feedbackMessage').textContent=(report.mode==='test'?'Tested':'Saved')+' snapshot · '+(report.text||'No interpreted text')+' · '+report.summary;
+  const list=$('feedbackIssues');list.replaceChildren();
+  for(const issue of report.issues||[]){const item=document.createElement('li');item.textContent=issue.message;list.append(item)}
+  $('feedbackCaution').textContent=report.limitation+(report.colon_role==='diagnostic_only'?' H:MM uses digit positions; colon alignment does not affect the countdown.':'')+(report.additional_issues?' More symptoms were found; address these and check again.':'');
+  $('feedbackResults').hidden=false;
+ }catch(e){$('feedbackMessage').textContent='Could not check view: '+e.message+' No settings were changed.'}
+ finally{busy=false;mode()}
+};
+// End readability feedback.
+// Pixel advice is deliberately separate from applying or saving calibration.
+let pixelAdvice=null,pixelAdviceGeneratedAt=0,pixelAdviceRevision=null;
+function pixelAdviceFresh(){
+ return !!pixelAdvice&&online&&initialized&&!dirty&&!state?.active&&
+  pixelAdvice.revision===revision&&pixelAdvice.signature===JSON.stringify(state.config)&&
+  Date.now()-pixelAdviceGeneratedAt<60000;
+}
+function updateAdviceControls(){
+ $('suggestPixels').disabled=busy||!online||!initialized||dirty||!!state?.active||!state?.frame_size;
+ if(pixelAdviceRevision!==null&&pixelAdviceRevision!==revision){
+  pixelAdvice=null;pixelAdviceRevision=null;$('pixelAdviceMessage').textContent='Applied settings changed. Request fresh advice if needed; finish any active test first.';
+ }
+ if(pixelAdvice&&!pixelAdviceFresh()){
+  pixelAdvice=null;$('pixelAdviceMessage').textContent='Advice expired or settings changed. Request a fresh suggestion before copying.';
+ }
+ $('copyPixelAdvice').hidden=!pixelAdvice;
+ $('copyPixelAdvice').disabled=busy||!pixelAdviceFresh();
+}
+$('suggestPixels').onclick=async()=>{
+ if(busy||!online||dirty||state?.active)return;
+ const requestedRevision=revision,signature=JSON.stringify(state.config);
+ pixelAdvice=null;pixelAdviceRevision=null;busy=true;mode();$('pixelAdviceMessage').textContent='Checking one display crop… Recognition and Home Assistant updates are unchanged.';
+ try{
+  const r=await fetch('/api/suggestions',{cache:'no-store',signal:AbortSignal.timeout(15000)}),advice=await r.json();
+  if(!r.ok)throw Error(advice.error||'Advice unavailable');
+  if(!online||dirty||state?.active||revision!==requestedRevision||advice.revision!==revision||signature!==JSON.stringify(state.config))throw Error('Settings changed; request a fresh suggestion');
+  pixelAdviceRevision=advice.revision;
+  const explanations={no_clear_reading:'No clear nonblank reading was found. Turn on a known countdown and check alignment, focus and exposure; no settings were changed.',disagreement:'Plausible settings produced different readings. No suggestion was selected. Check alignment and the cropped segment overlay.',current_settings_fit:'Existing pixel settings already fit this snapshot as well as the candidates. No change suggested. Still check the actual digits/colon and both lighting conditions.'};
+  if(advice.reason==='suggested'&&advice.recommendation){
+   pixelAdvice={...advice.recommendation,revision:advice.revision,signature};pixelAdviceGeneratedAt=Date.now();
+   const labels={blue:'Blue',green:'Green',red:'Red',gray:'Grayscale',max:'Brightest colour'};
+   $('pixelAdviceMessage').textContent='Try '+labels[pixelAdvice.channel]+' · fixed cutoff '+pixelAdvice.threshold_value+'. Snapshot reads '+pixelAdvice.text+' ('+Math.round(pixelAdvice.confidence*100)+'% sampling match). Is that exactly what the appliance shows, including the colon? Copy to the form only if it matches, then Test changes. Advice expires after 1 minute.';
+  }else $('pixelAdviceMessage').textContent=explanations[advice.reason]||'No suggestion available; no settings were changed.';
+ }catch(e){$('pixelAdviceMessage').textContent='Could not prepare advice: '+e.message+' No settings were changed.'}
+ finally{busy=false;mode()}
+};
+$('copyPixelAdvice').onclick=()=>{
+ if(busy||!pixelAdviceFresh()){updateAdviceControls();return}
+ const advice=pixelAdvice;pixelAdvice=null;
+ $('channel').value=advice.channel;$('thresholdMethod').value='fixed';$('threshold').value=advice.threshold_value;
+ $('advanced').open=true;changed();
+ $('pixelAdviceMessage').textContent='Suggestion copied to the form only. Check the highlighted settings, then Test changes. Nothing has been applied or saved.';
+ $('message').textContent='Pixel suggestion copied as untested edits. Test changes, inspect the digits/colon, then save or discard.';
+ $('preview').focus();
+};
+// End pixel advice.
+function json(id){return JSON.parse($(id).value||'null')}
+function box(v){return{x:+v[0],y:+v[1],w:+v[2],h:+v[3]}}
+function arr(r){return[Math.round(r.x),Math.round(r.y),Math.round(r.w),Math.round(r.h)]}
+function controls(){const auto=$('exposureMode').value==='auto';$('exposure').disabled=auto;$('gain').disabled=auto;$('lens').disabled=$('focusMode').value!=='manual';$('threshold').disabled=$('thresholdMethod').value!=='fixed';$('thresholdOut').textContent=$('threshold').value}
+function targets(){const old=$('editTarget').value, boxes=json('boxes')||[];$('editTarget').replaceChildren(new Option('Whole display','roi'));boxes.forEach((_,i)=>$('editTarget').add(new Option('Digit '+(i+1),'digit-'+i)));if(json('colonBox'))$('editTarget').add(new Option('Colon','colon'));if(alignmentEditing&&alignmentBox)$('editTarget').add(new Option('Alignment anchor','anchor'));if([...$('editTarget').options].some(x=>x.value===old))$('editTarget').value=old}
+function colonOptions(n,selected){$('colonAfter').replaceChildren(new Option('No colon','0'));for(let i=1;i<n;i++)$('colonAfter').add(new Option('After digit '+i,String(i)));$('colonAfter').value=String(selected<n?selected:0)}
+function payload(){const manual=$('exposureMode').value==='manual';return{camera:{exposure_time_us:manual?+$('exposure').value:null,analogue_gain:manual?+$('gain').value:null,autofocus_mode:$('focusMode').value,lens_position:$('focusMode').value==='manual'?+$('lens').value:null,capture_burst_count:+$('burstCount').value},display:{roi:json('roi'),digit_boxes:json('boxes'),colon_box:+$('colonAfter').value?json('colonBox'):null,colon_after:+$('colonAfter').value||null,channel:$('channel').value,threshold_method:$('thresholdMethod').value,threshold_value:+$('threshold').value,min_segment_fill:+$('segmentFill').value,colon_min_fill:+$('colonFill').value,min_digit_confidence:+$('digitConfidence').value,segment_thickness_ratio:+$('thickness').value,segment_slant_ratio:+$('slant').value,segment_sample_boxes:samplesPayload()},semantics:{countdown_format:$('countdownFormat').value},stability:{unknown_grace_seconds:+$('unknownGrace').value}}}
+function fill(s){const c=s.config,d=c.display,cam=c.camera||{};sampleBoxes=d.segment_sample_boxes?structuredClone(d.segment_sample_boxes):null;sampleDrag=null;$('sampleError').textContent='';$('countdownFormat').value=c.semantics?.countdown_format||'auto';$('roi').value=JSON.stringify(d.roi);$('boxes').value=JSON.stringify(d.digit_boxes);$('colonBox').value=JSON.stringify(d.colon_box);$('digitCount').value=d.digit_boxes.length;colonOptions(d.digit_boxes.length,d.colon_after||0);$('channel').value=d.channel;$('thresholdMethod').value=d.threshold_method;$('threshold').value=d.threshold_value;$('segmentFill').value=d.min_segment_fill;$('colonFill').value=d.colon_min_fill;$('digitConfidence').value=d.min_digit_confidence;$('thickness').value=d.segment_thickness_ratio;$('slant').value=d.segment_slant_ratio;$('unknownGrace').value=c.stability.unknown_grace_seconds;$('exposureMode').value=cam.exposure_time_us==null?'auto':'manual';$('exposure').value=cam.exposure_time_us??8333;$('gain').value=cam.analogue_gain??1;$('focusMode').value=cam.autofocus_mode||'default';$('lens').value=cam.lens_position??0;$('burstCount').value=cam.capture_burst_count??1;controls();targets();sampleInputs();applied=JSON.stringify(payload());dirty=false}
+function age(v){if(v==null)return'Not yet';return v<2?'Just now':v<60?Math.round(v)+'s ago':Math.floor(v/60)+'m ago'}
+function metric(id,text,kind=''){const el=$(id);el.textContent=text;el.className=kind}
+function health(h){if(!h)return;const sys=h.system||{},m=h.mqtt||{};metric('cameraHealth',h.camera_status==='live'?'Live · '+age(h.frame_age_seconds):h.camera_status==='waiting'?'Waiting for camera':h.camera_status==='stale'?'Stale · '+age(h.frame_age_seconds):'Capture error',h.camera_status==='live'?'good':'warn');metric('mqttHealth',!m.enabled?'Disabled':m.connected===true?'Connected':m.connected===false?'Disconnected / retrying':'Checking…',m.enabled&&m.connected!==true?'warn':'good');metric('readingAge',age(h.reading_age_seconds));metric('temperature',sys.temperature_c==null?'Not available':sys.temperature_c+' °C');metric('wifi',sys.wifi_signal_dbm==null?'Not available':sys.wifi_signal_dbm+' dBm');metric('memory',sys.memory_available_mb==null?'Not available':Math.round(sys.memory_available_mb)+' MB');$('healthHint').textContent=m.enabled&&m.connected!==true?(m.error||'MQTT is not connected. Camera recognition can continue, but Home Assistant cannot receive updates. Check broker reachability from this network.'):'System readings are passive. Wi-Fi signal alone does not measure packet loss or prove a reliable connection.'}
+function mode(){renderSamples();renderReadingHistory();renderReadingQuality();const el=$('mode');el.className='banner';if(!online){el.classList.add('bad');el.textContent='Setup page disconnected. Displayed images and readings may be stale; changes cannot be saved.'}else if(state?.active){el.classList.add('warn');el.textContent='TEST MODE · Home Assistant updates paused. '+(dirty?'Additional edits are not tested. ':'')+'Save or discard to resume. Test expires in '+Math.ceil((state.preview_seconds_remaining||0)/60)+' minutes.'}else if(dirty){el.classList.add('warn');el.textContent='UNTESTED EDITS · Recognition still uses the previous settings. Choose Test changes to check your edits.'}else{el.textContent='SAVED SETTINGS · Recognition uses the saved calibration. Home Assistant updates are enabled when MQTT is connected.'}for(const id of ['preview','save','cancel'])$(id).disabled=busy||!online||!initialized;$('cancel').disabled||=!(dirty||state?.active);$('restoreProfile').disabled=busy||!online||!initialized||!state?.recovery?.previous_available;$('importProfile').disabled=busy||!online||!initialized||!$('profileFile').files.length;$('recoveryHint').textContent=state?.recovery?.previous_available?'A previous saved calibration is available. Recovery copies only optical settings; your current MQTT connection and device identity are kept.':'No previous saved calibration is available yet. Saving a change creates one rollback copy.';$('downloadDiagnostics').disabled=diagnosticDownloading||!online||!initialized||!state?.frame_size;syncChecklist();updateAdviceControls();updateAlignmentControls();updateFeedbackControls();}
+function detection(d){const el=$('detection');if(!d){el.textContent='Waiting for a reading';return}if(d.error){el.textContent=d.error;el.className='status warn'}else{const blank=d.valid&&!d.text&&d.digits?.length&&d.digits.every(x=>x.value==null);el.textContent=(blank?'Blank display · no countdown visible':'Display: '+(d.text||'No readable text')+' · '+Math.round((d.confidence||0)*100)+'% match · '+(d.valid?'recognized pattern':'unreadable pattern'))+(dirty?' · uses previous settings':'');el.className='status '+(blank?'':d.valid&&d.candidate_status!=='unknown'?'good':'warn')}$('digitDetails').textContent=(d.digits||[]).map((x,i)=>'Digit '+(i+1)+': '+(x.value??'blank')+' · '+Math.round(x.confidence*100)+'% · lit segments ['+x.active_segments.join('')+']').join('\n')+'\nColon: '+(d.colon_on?'lit':'not lit')+(state?.config?.semantics?.countdown_format==='H:MM'?' · diagnostic only (H:MM)':' · used for automatic format')}
+function selectedRect(){if($('editTarget').value==='anchor')return alignmentBox?box(alignmentBox):null;const r=box(json('roi')),target=$('editTarget').value;if(target==='roi')return r;const a=target==='colon'?json('colonBox'):(json('boxes')||[])[+target.split('-')[1]];if(!a)return null;const b=box(a);return{...b,x:r.x+b.x,y:r.y+b.y}}
+function draw(){renderSamples();if(!state||!img.naturalWidth)return;try{const fs=state.frame_size||[img.naturalWidth,img.naturalHeight];if(canvas.width!==fs[0]||canvas.height!==fs[1]){canvas.width=fs[0];canvas.height=fs[1]}ctx.drawImage(img,0,0,canvas.width,canvas.height);const r=box(json('roi')),digits=state.detection?.digits||[];ctx.lineWidth=Math.max(3,canvas.width/650);ctx.font=Math.round(canvas.width/75)+'px system-ui';ctx.strokeStyle='#62c3ff';ctx.strokeRect(r.x,r.y,r.w,r.h);(json('boxes')||[]).forEach((a,i)=>{const d=digits[i];ctx.strokeStyle=dirty?'#ffd580':!d||!d.valid?'#ff9b9b':d.value==null?'#adbac4':'#82e6b2';ctx.strokeRect(r.x+a[0],r.y+a[1],a[2],a[3]);ctx.fillStyle=ctx.strokeStyle;ctx.fillText(String(i+1),r.x+a[0]+6,r.y+a[1]+25)});const cb=json('colonBox');if(cb&&+$('colonAfter').value){ctx.strokeStyle='#ffd580';ctx.strokeRect(r.x+cb[0],r.y+cb[1],cb[2],cb[3])}if(alignmentBox){const a=box(alignmentBox);ctx.strokeStyle='#d79cff';ctx.strokeRect(a.x,a.y,a.w,a.h);ctx.fillStyle='#d79cff';ctx.fillText('Anchor',a.x+4,a.y+25)}const s=selectedRect();if(s){ctx.strokeStyle='#ffffff';ctx.setLineDash([9,7]);ctx.strokeRect(s.x,s.y,s.w,s.h);ctx.setLineDash([]);ctx.fillStyle='#ffffff';ctx.fillRect(s.x+s.w-16,s.y+s.h-16,16,16)}}catch(e){/* Invalid coordinate edits remain unapplied until fixed. */}}
+function changed(){controls();try{dirty=JSON.stringify(payload())!==applied||+$('digitCount').value!==json('boxes').length;targets()}catch(e){dirty=true}mode();detection(state?.detection);draw()}
+function inspect(){if(document.hidden||!$('inspection').open)return;for(const [id,path]of[['overlayImage','overlay'],['binaryImage','binary']])$(id).src='/api/'+path+'.jpg?t='+Date.now()}
+function loadFrame(){if(document.hidden||frameLoading||!online)return;frameLoading=true;img.src='/api/frame.jpg?t='+Date.now();inspect()}
+img.onload=()=>{frameLoading=false;draw()};img.onerror=()=>{frameLoading=false;$('message').textContent='Camera image unavailable. Check the health panel; your settings have not changed.'};
+async function poll(){if(!document.hidden){try{const r=await fetch('/api/state',{cache:'no-store',signal:AbortSignal.timeout(6000)});if(!r.ok)throw Error('HTTP '+r.status);const s=await r.json();online=true;state=s;if(!initialized||s.revision!==revision){const wasDirty=dirty,first=!initialized;fill(s);revision=s.revision;initialized=true;if(first)$('message').textContent='Saved settings loaded. Edit, then test before saving.';if(wasDirty)$('message').textContent='The applied settings changed or the test expired; fields now show the current settings.'}health(s.health);detection(s.detection);$('connection').textContent='Setup connected';mode();draw();if(!img.naturalWidth)loadFrame()}catch(e){online=false;$('connection').textContent='Connection lost';$('cameraHealth').textContent='Connection lost';$('mqttHealth').textContent='Unknown';$('message').textContent='Cannot reach the sensor. Check its address and network connection.';mode()}}setTimeout(poll,document.hidden?10000:2000)}
+async function post(path){if(busy)return;busy=true;mode();$('message').textContent='Applying…';try{if(!path.endsWith('cancel')){for(const el of document.querySelectorAll('#settings input,#settings select,input#digitCount'))if(!el.disabled&&!el.checkValidity()){el.reportValidity();throw Error('Check the highlighted field.')}if(+$('digitCount').value!==json('boxes').length)throw Error('Digit count differs from the boxes. Create starting boxes or correct the coordinates.');if(+$('colonAfter').value&&!json('colonBox'))throw Error('Create a colon box before testing a colon position.')}const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:path.endsWith('cancel')?'{}':JSON.stringify(payload()),signal:AbortSignal.timeout(10000)}),s=await r.json();if(!r.ok)throw Error(s.error||r.statusText);state=s;revision=s.revision;fill(s);health(s.health);detection(s.detection);$('message').textContent=path.endsWith('save')?'Settings saved. Previous settings kept in '+s.backup+'.':path.endsWith('cancel')?'Edits discarded; saved settings restored.':'Test applied. Check the digits and colon before saving.';loadFrame()}catch(e){$('message').textContent='Not confirmed: '+e.message+' Your local edits are still shown. If a request timed out, reconnect to confirm the applied state.'}finally{busy=false;mode()}}
+$('preview').onclick=()=>post('/api/preview');$('save').onclick=()=>post('/api/save');$('cancel').onclick=()=>post('/api/cancel');$('refresh').onclick=loadFrame;$('inspection').ontoggle=inspect;$('editTarget').onchange=draw;
+$('exportProfile').style.cssText='display:inline-block;padding:9px 12px;border:1px solid #516777;border-radius:7px;color:#eef4f8;text-decoration:none';
+$('profileFile').onchange=mode;
+$('downloadDiagnostics').onclick=async()=>{if(diagnosticDownloading||!online)return;diagnosticDownloading=true;mode();$('downloadDiagnostics').textContent='Preparing display snapshot…';$('diagnosticMessage').textContent='Preparing one display-only snapshot. Your calibration and Home Assistant updates are unchanged.';try{const r=await fetch('/api/diagnostics.zip',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!r.ok){const error=await r.json();throw Error(error.error||'Diagnostic unavailable')}if(!r.headers.get('Content-Type')?.startsWith('application/zip'))throw Error('Unexpected download format');const blob=await r.blob();if(blob.size>8388608)throw Error('Download exceeded the 8 MB limit');const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='display-diagnostics.zip';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);$('diagnosticMessage').textContent='Download prepared. Review display.png and segments.png before sharing. Test-mode settings, if active, are labelled in report.json. Nothing was saved on the Pi or uploaded.'}catch(e){$('diagnosticMessage').textContent='Download failed: '+e.message+'. No calibration changes were made.'}finally{diagnosticDownloading=false;$('downloadDiagnostics').textContent='Download cropped diagnostics (.zip)';mode()}};
+let pendingRecovery=null;
+function requestRecovery(path,body){if(busy||!online)return;pendingRecovery={path,body};$('recoveryConfirmText').textContent='Load '+(path.includes('restore')?'the previous saved calibration':'this optical profile')+' into test mode? '+(dirty||state?.active?'Your current edits/test will be replaced. ':'')+'Home Assistant updates pause until you save or discard. Your saved calibration and MQTT settings will not change.';$('recoveryConfirm').hidden=false;$('confirmRecovery').focus()}
+async function recover(path,body){if(busy||!online)return;busy=true;mode();$('message').textContent='Validating calibration…';try{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000)}),s=await r.json();if(!r.ok)throw Error(s.error||r.statusText);state=s;revision=s.revision;fill(s);health(s.health);detection(s.detection);$('message').textContent=(path.includes('restore')?'Previous calibration':'Imported profile')+' is now in TEST MODE. Check alignment and recognition, then save or discard. Nothing has been saved.';loadFrame()}catch(e){$('message').textContent='Could not confirm recovery: '+e.message+'. No configuration file was saved by this action.'}finally{busy=false;mode()}}
+$('confirmRecovery').onclick=()=>{const pending=pendingRecovery;pendingRecovery=null;$('recoveryConfirm').hidden=true;if(pending)recover(pending.path,pending.body)};
+$('cancelRecovery').onclick=()=>{pendingRecovery=null;$('recoveryConfirm').hidden=true;$('message').textContent='Recovery cancelled; current settings kept.'};
+$('restoreProfile').onclick=()=>requestRecovery('/api/restore/preview',{});
+$('importProfile').onclick=async()=>{try{const file=$('profileFile').files[0];if(!file)throw Error('Choose an exported JSON profile first');if(file.size>65536)throw Error('Profile is too large (maximum 64 KB)');const profile=JSON.parse(await file.text());requestRecovery('/api/profile/preview',profile)}catch(e){$('message').textContent='Profile not loaded: '+e.message}};
+$('generate').onclick=()=>{try{if(!confirm('Replace the current digit and colon boxes with evenly spaced starting boxes? This does not apply or save them.'))return;const r=box(json('roi')),n=+$('digitCount').value,ca=+$('colonAfter').value||null;if(!Number.isInteger(n)||n<1||n>8)throw Error('Choose 1–8 digit positions.');const margin=Math.round(r.w*.05),gap=Math.round(r.w*.025),colonGap=ca?Math.round(r.w*.055):gap,usable=r.w-2*margin-gap*(n-1)-(ca?colonGap-gap:0),w=Math.floor(usable/n),h=Math.round(r.h*.78),y=Math.round(r.h*.11);let x=margin,b=[];for(let i=0;i<n;i++){b.push([x,y,w,h]);x+=w+(ca===i+1?colonGap:gap)}$('boxes').value=JSON.stringify(b);$('colonBox').value=ca?JSON.stringify([b[ca-1][0]+w+Math.round(gap*.25),Math.round(r.h*.27),Math.max(8,colonGap-Math.round(gap*.5)),Math.round(r.h*.46)]):'null';changed();$('message').textContent='Starting boxes created. Adjust each box to the complete digit, then Test changes.'}catch(e){$('message').textContent=e.message}};
+function point(e){const b=canvas.getBoundingClientRect();return{x:(e.clientX-b.left)*canvas.width/b.width,y:(e.clientY-b.top)*canvas.height/b.height}}
+canvas.onpointerdown=e=>{try{const p=point(e),r=selectedRect();if(!r)return;const reach=22*canvas.width/canvas.getBoundingClientRect().width,resize=Math.abs(p.x-r.x-r.w)<reach&&Math.abs(p.y-r.y-r.h)<reach;if(resize||p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h){drag={p,r,target:$('editTarget').value,resize};canvas.setPointerCapture(e.pointerId)}}catch(e){$('message').textContent='Fix invalid coordinates before dragging.'}};
+canvas.onpointermove=e=>{if(!drag)return;const p=point(e),r={...drag.r},roi=box(json('roi')),whole=drag.target==='roi'||drag.target==='anchor',left=whole?0:roi.x,top=whole?0:roi.y,right=whole?canvas.width:roi.x+roi.w,bottom=whole?canvas.height:roi.y+roi.h,minimum=drag.target==='anchor'?32:whole?30:8;if(drag.resize){r.w=Math.max(minimum,Math.min(right-r.x,r.w+p.x-drag.p.x));r.h=Math.max(minimum,Math.min(bottom-r.y,r.h+p.y-drag.p.y))}else{r.x=Math.max(left,Math.min(right-r.w,r.x+p.x-drag.p.x));r.y=Math.max(top,Math.min(bottom-r.h,r.y+p.y-drag.p.y))}if(drag.target==='anchor'){r.w=Math.min(160,r.w);r.h=Math.min(160,r.h);alignmentBox=arr(r);alignmentEditing=true;$('confirmAnchor').checked=false;$('anchorBox').value=JSON.stringify(alignmentBox);updateAlignmentControls();draw();return}if(whole)$('roi').value=JSON.stringify(arr(r));else{r.x-=roi.x;r.y-=roi.y;if(drag.target==='colon')$('colonBox').value=JSON.stringify(arr(r));else{const b=json('boxes');b[+drag.target.split('-')[1]]=arr(r);$('boxes').value=JSON.stringify(b)}}changed()};
+canvas.onpointerup=canvas.onpointercancel=()=>drag=null;
+for(const el of document.querySelectorAll('input,textarea,select'))if(el.id!=='editTarget'&&el.id!=='profileFile'&&!el.hasAttribute('data-check')&&!el.hasAttribute('data-local'))el.addEventListener('input',()=>{if(el.id==='digitCount')colonOptions(+el.value,+$('colonAfter').value);changed()});
+window.addEventListener('beforeunload',e=>{if(dirty||state?.active){e.preventDefault();e.returnValue=''}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadFrame()});poll();setInterval(loadFrame,3000);
+</script>
+</body></html>

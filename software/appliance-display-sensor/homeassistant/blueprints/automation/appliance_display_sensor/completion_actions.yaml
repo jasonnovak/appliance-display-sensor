@@ -1,0 +1,32 @@
+blueprint:
+  name: Appliance Display Sensor - completion actions
+  description: >-
+    Run user-selected actions when an Appliance Display Sensor changes from running to complete.
+    Choose the device's Status entity, not its Time remaining entity, so appliances that show zero
+    before a terminal message do not cause an early alert.
+  domain: automation
+  input:
+    status_entity:
+      name: Status entity
+      description: The Appliance Display Sensor entity whose values include running and complete.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+    completion_actions:
+      name: Completion actions
+      description: Notifications, announcements, or other actions to run once per completed cycle.
+      selector:
+        action:
+
+triggers:
+  - trigger: state
+    entity_id: !input status_entity
+    from: running
+    to: complete
+
+conditions: []
+
+actions: !input completion_actions
+
+mode: single

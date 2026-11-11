@@ -1,0 +1,8 @@
+{
+  "configuration": {
+    "device_name": {"name": "Device name", "description": "The appliance name Google should recognize. After changing it, restart this app and ask Google to sync your devices."},
+    "device_type": {"name": "Appliance type", "description": "How Google categorizes this device. All types report running; this does not identify a physical cycle phase or enable controls."},
+    "room": {"name": "Suggested room", "description": "Used for discovery. You can assign the device to another room in Google Home."},
+    "public_base_url": {"name": "Public HTTPS address", "description": "Stable tunnel origin, without /oauth or another path. Leave empty to use the imported address."}
+  }
+}

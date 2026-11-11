@@ -1,0 +1,13 @@
+{
+  "name": "Appliance Display Sensor Tunnel",
+  "version": "2026.10.1",
+  "slug": "appliance_display_tunnel",
+  "description": "Cloudflare connector for the authenticated appliance bridge only.",
+  "arch": ["amd64", "aarch64"],
+  "startup": "services",
+  "boot": "auto",
+  "init": false,
+  "map": [{"type": "app_config", "read_only": true}],
+  "options": {},
+  "schema": {}
+}

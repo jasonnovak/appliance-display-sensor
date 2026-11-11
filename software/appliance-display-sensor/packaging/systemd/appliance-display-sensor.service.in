@@ -1,0 +1,23 @@
+[Unit]
+Description=Appliance Display Sensor
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_GROUP@
+WorkingDirectory=@PROJECT_DIR@
+ExecStart=@PROJECT_DIR@/.venv/bin/python -m appliance_display_sensor --config @CONFIG_PATH@ --compact
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+# The setup page writes an atomic config replacement and a rollback copy. For
+# best isolation, keep the live configuration in a dedicated runtime directory.
+ReadWritePaths=@PROJECT_DIR@/debug @CONFIG_DIR@
+
+[Install]
+WantedBy=multi-user.target

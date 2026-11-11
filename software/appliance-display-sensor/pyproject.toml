@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "appliance-display-sensor"
+version = "0.1.0.dev0"
+description = "Local camera-based appliance display sensing for MQTT and Home Assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Appliance Display Sensor contributors" }]
+keywords = [
+  "home-assistant",
+  "mqtt",
+  "raspberry-pi",
+  "seven-segment",
+  "computer-vision",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Home Automation",
+]
+dependencies = [
+  "numpy>=1.24",
+  "opencv-python-headless>=4.8",
+  "paho-mqtt>=2.0",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "jinja2>=3.1",
+  "pytest>=8.0",
+  "ruff>=0.9",
+]
+
+[project.scripts]
+appliance-display-sensor = "appliance_display_sensor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+appliance_display_sensor = ["calibration_ui.html"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+

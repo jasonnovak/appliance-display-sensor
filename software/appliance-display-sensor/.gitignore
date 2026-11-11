@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+coverage.xml
+.coverage
+.runtime-update.lock
+
+# Generated calibration and diagnostic images may contain private surroundings.
+captures/
+debug/
+sample-display.png
+
+# Local configuration may contain network credentials.
+config.yaml
+*.local.yaml
+*.alignment.npz
+*.alignment.tmp
+secrets/

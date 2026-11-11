@@ -1,0 +1,191 @@
+blueprint:
+  name: Appliance Display Sensor - Android priority health alerts
+  description: >-
+    Send a high-priority Android Companion App notification after a sustained sensor fault.
+    Select Camera status and Display reading problem from the same device, then your Android
+    phone. Priority is high; notification TTL defaults to zero for immediate delivery or discard.
+    An unreachable phone can miss the alert. This does not bypass Do Not Disturb or force sound.
+    The fault-confirmation delays are intentional and independent of push-delivery priority.
+    No periodic reminders, appliance control or completion alerts are added. Each fault type
+    alerts once until it clears and recurs. Pending waits reset on HA restart/reload; existing
+    faults may need a new transition. This is not safety monitoring.
+  domain: automation
+  homeassistant:
+    min_version: "2024.10.0"
+  input:
+    camera_entity:
+      name: Camera status
+      description: Choose the diagnostic Camera status entity, not the appliance Status entity.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: mqtt
+    problem_entity:
+      name: Display reading problem
+      description: Choose the problem binary sensor from the same Appliance Display Sensor device.
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+              integration: mqtt
+              device_class: problem
+    device_label:
+      name: Name used in the alert
+      default: Appliance display sensor
+      selector:
+        text:
+    notify_device:
+      name: Android phone
+      description: >-
+        Choose an Android device registered by the Home Assistant Companion App, with
+        notifications allowed. The picker can also show Apple devices; this variant's
+        delivery settings are Android-specific. No phone is preselected.
+      selector:
+        device:
+          filter:
+            - integration: mobile_app
+    notification_ttl:
+      name: Offline delivery window
+      description: >-
+        Seconds a push notification may wait for the phone. Zero requests immediate delivery
+        or discard (the default). Set, for example, 300 to allow up to five minutes of queuing
+        while retaining high priority. Queued messages can arrive after the fault clears.
+        Delivery still depends on connectivity, permissions and the phone/push service.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 3600
+          step: 1
+          unit_of_measurement: seconds
+          mode: box
+    camera_alerts:
+      name: Alert for camera or connection faults
+      default: true
+      selector:
+        boolean:
+    camera_wait_seconds:
+      name: Camera or connection fault delay
+      description: >-
+        Seconds the Camera status must remain stale, error, unavailable or unknown.
+        Brief reboots and network interruptions shorter than this are ignored.
+        Switching between these fault states does not restart the delay.
+      default: 120
+      selector:
+        number:
+          min: 10
+          max: 3600
+          step: 10
+          unit_of_measurement: seconds
+          mode: box
+    reading_alerts:
+      name: Alert for unreadable displays
+      default: true
+      selector:
+        boolean:
+    reading_wait_seconds:
+      name: Additional unreadable-display delay
+      description: >-
+        The sensor already waits 60 seconds before turning Display reading problem on.
+        This adds another delay; the default is about two minutes total, plus heartbeat
+        timing. Requires Camera status to remain live. A blank/off display is not an alert.
+      default: 60
+      selector:
+        number:
+          min: 10
+          max: 3600
+          step: 10
+          unit_of_measurement: seconds
+          mode: box
+    health_actions:
+      name: Additional actions (optional)
+      description: >-
+        Extra actions after the phone notification, such as a dashboard notice. Available
+        variables are health_message, health_title and health_reason. Leave empty to send
+        only the built-in phone notification. A failed phone action does not block these actions.
+      default: []
+      selector:
+        action:
+
+trigger_variables:
+  watched_camera: !input camera_entity
+  watched_problem: !input problem_entity
+  camera_enabled: !input camera_alerts
+  reading_enabled: !input reading_alerts
+
+triggers:
+  - trigger: template
+    id: camera_or_connection
+    value_template: >-
+      {{ camera_enabled and states(watched_camera) in ['stale', 'error', 'unavailable', 'unknown'] }}
+    for:
+      seconds: !input camera_wait_seconds
+  - trigger: template
+    id: unreadable
+    value_template: >-
+      {{ reading_enabled and is_state(watched_camera, 'live') and is_state(watched_problem, 'on') }}
+    for:
+      seconds: !input reading_wait_seconds
+
+variables:
+  camera_entity: !input camera_entity
+  problem_entity: !input problem_entity
+  device_label: !input device_label
+  camera_enabled: !input camera_alerts
+  reading_enabled: !input reading_alerts
+
+conditions: []
+
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: >-
+              {{ trigger is defined and trigger.id == 'camera_or_connection' and camera_enabled
+                 and states(camera_entity) in ['stale', 'error', 'unavailable', 'unknown'] }}
+        sequence:
+          - variables:
+              health_reason: camera_or_connection
+              health_title: "{{ device_label }}: sensor health"
+              health_message: >-
+                {{ device_label }} is not supplying fresh camera health ({{ states(camera_entity) }}).
+                Check the Pi, camera and MQTT connection. This does not indicate whether
+                the appliance is running or finished.
+          - device_id: !input notify_device
+            domain: mobile_app
+            type: notify
+            title: "{{ health_title }}"
+            message: "{{ health_message }}"
+            data:
+              priority: high
+              ttl: !input notification_ttl
+            continue_on_error: true
+          - sequence: !input health_actions
+      - conditions:
+          - condition: template
+            value_template: >-
+              {{ trigger is defined and trigger.id == 'unreadable' and reading_enabled
+                 and is_state(camera_entity, 'live') and is_state(problem_entity, 'on') }}
+        sequence:
+          - variables:
+              health_reason: unreadable
+              health_title: "{{ device_label }}: display unreadable"
+              health_message: >-
+                {{ device_label }} has been unable to read the display reliably.
+                Check alignment and Explain this camera view in the setup page.
+                This does not mean the appliance has stopped or finished.
+          - device_id: !input notify_device
+            domain: mobile_app
+            type: notify
+            title: "{{ health_title }}"
+            message: "{{ health_message }}"
+            data:
+              priority: high
+              ttl: !input notification_ttl
+            continue_on_error: true
+          - sequence: !input health_actions
+
+mode: parallel
+max: 2
+max_exceeded: silent

@@ -1,0 +1,77 @@
+version: 1
+
+# The user chooses the device name. Appliance type is optional metadata and does
+# not change the decoder.
+device:
+  identifier: appliance-display-01
+  name: Appliance Display
+  appliance_type: null
+
+# Image-file input allows development and calibration without camera hardware.
+input:
+  type: image_file
+  path: ../sample-display.png
+
+display:
+  decoder: seven_segment
+
+  # Pixel coordinates are [x, y, width, height]. Digit and colon boxes are
+  # relative to the display ROI, not the full source image.
+  roi: [0, 0, 420, 150]
+  digit_boxes:
+    - [25, 15, 70, 120]
+    - [175, 15, 70, 120]
+    - [285, 15, 70, 120]
+  colon_box: [120, 38, 24, 74]
+  colon_after: 1
+
+  channel: blue
+  threshold:
+    method: fixed
+    value: 160
+  min_segment_fill: 0.30
+  colon_min_fill: 0.02
+  min_digit_confidence: 0.72
+  segment_thickness_ratio: 0.12
+  # Positive values model digits whose segments lean left toward the bottom.
+  segment_slant_ratio: 0.0
+
+  # Limit recognition to glyphs the appliance can show. "E", "n", and "d"
+  # support the common seven-segment terminal message "End".
+  allowed_glyphs: [blank, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "E", "n", "d"]
+
+semantics:
+  # auto uses the detected colon. H:MM uses three fixed positions, ignoring the colon.
+  countdown_format: auto
+  # A display without an illuminated colon is interpreted as whole minutes.
+  no_colon_unit: minutes
+  terminal_texts: ["End"]
+
+stability:
+  # Live capture will require this many consecutive matching observations.
+  confirmations: 2
+  # Preserve completion after a short-lived terminal message goes blank.
+  latch_completion_until_next_cycle: true
+  # Keep the last valid running reading across multiplexing gaps or brief glare.
+  unknown_grace_seconds: 15
+
+# Optional bounded, display-cropped snapshots aid calibration without retaining
+# full room images. Fixed filenames keep only the latest accepted transition and
+# the latest transition for each semantic state.
+diagnostics:
+  transition_directory: null
+
+# Optional local setup page. Keep disabled unless calibrating on a trusted LAN.
+calibration:
+  enabled: false
+  host: 127.0.0.1
+  port: 8090
+
+mqtt:
+  enabled: false
+  host: homeassistant.local
+  port: 1883
+  username: null
+  password: null
+  base_topic: appliance_display_sensor/appliance-display-01
+  discovery_prefix: homeassistant

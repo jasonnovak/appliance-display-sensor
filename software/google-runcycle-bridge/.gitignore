@@ -1,0 +1,10 @@
+.venv/
+.local/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+PRIVATE-*.zip
+linking-credentials.txt
+google-console.txt
+grants.sqlite3*
+*.token
