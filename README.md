@@ -15,6 +15,8 @@ The owner reports the physical checks were completed on the reference installati
 A fresh independent installation and isolated recovery checks remain open. This is
 not a universal display reader or a certified Works with Google product.
 
+[Download the mount and print profile on MakerWorld](https://makerworld.com/en/models/3591988-appliance-display-sensor-pi-camera-mount)
+
 ## Choose your starting point
 
 | Component | Start here |
@@ -49,6 +51,8 @@ Use the Pi OS packages for Picamera2 as described in the setup guide.
 
 Original software and software documentation: [Apache-2.0](LICENSE).
 Mount/case designs and their documentation: [CERN-OHL-P-2.0](hardware/mount/LICENSE).
+The [MakerWorld model listing](https://makerworld.com/en/models/3591988-appliance-display-sensor-pi-camera-mount) additionally offers the model under
+Creative Commons Attribution (CC BY); see that listing for its license terms.
 See [NOTICE](NOTICE). Third-party components keep their original licenses.
 
 ## Contributing and publishing

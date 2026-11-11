@@ -2,6 +2,8 @@
 
 ![Assembled mount and ventilated Pi enclosure](photos/appliance-display-sensor-5.jpg)
 
+[Download the mount and print profile on MakerWorld](https://makerworld.com/en/models/3591988-appliance-display-sensor-pi-camera-mount)
+
 ## Supplied print project and photos
 
 The [Bambu Studio 3MF](print-project/appliance-display-mount.3mf) is the supplied
@@ -73,3 +75,5 @@ on each new installation. The camera's working distance and exposure must be cal
 your appliance; the mount does not supply a universal pixel profile.
 
 Original designs and this guide: [CERN-OHL-P-2.0](LICENSE); see [LICENSING.md](LICENSING.md).
+
+The [MakerWorld listing](https://makerworld.com/en/models/3591988-appliance-display-sensor-pi-camera-mount) additionally offers the model under Creative Commons Attribution (CC BY).
